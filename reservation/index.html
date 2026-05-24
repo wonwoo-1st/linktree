@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="reservation-api-base" content="https://REPLACE_WITH_NON_RAILWAY_RESERVATION_API_DOMAIN">
+  <title>우리집첫째 호텔 간편예약</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="page">
+    <section class="paper">
+      <div class="spiral" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <header class="hero">
+        <p>WOOREEZIP HOTEL</p>
+        <h1>호텔 간편예약</h1>
+        <div class="line"></div>
+        <span>인스타그램 전용 접수</span>
+      </header>
+
+      <form id="reservation-form" class="form">
+        <input type="text" name="company" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+        <label>
+          <span>예약 지점</span>
+          <select name="branch" required>
+            <option value="">지점 선택</option>
+            <option value="sasang">사상점</option>
+            <option value="eomgung">엄궁점</option>
+          </select>
+        </label>
+
+        <label>
+          <span>강아지 이름</span>
+          <input type="text" name="dog_name" maxlength="32" placeholder="예: 밴쭈" required>
+        </label>
+
+        <label>
+          <span>종류</span>
+          <input type="text" name="breed" maxlength="40" placeholder="예: 말티즈, 푸들, 비숑" required>
+        </label>
+
+        <label>
+          <span>체중</span>
+          <select name="weight_kg" required>
+            <option value="">체중 선택</option>
+            <option value="4">4kg 이하</option>
+            <option value="6">4kg 초과~6kg 이하</option>
+            <option value="8">6kg 초과~8kg 이하</option>
+          </select>
+        </label>
+
+        <div class="grid">
+          <label>
+            <span>체크인</span>
+            <input type="date" name="checkin" required>
+          </label>
+          <label>
+            <span>체크아웃</span>
+            <input type="date" name="checkout" required>
+          </label>
+        </div>
+
+        <div class="grid">
+          <label>
+            <span>중성화 여부</span>
+            <select name="neutered" required>
+              <option value="">선택</option>
+              <option value="true">완료</option>
+              <option value="false">미완료</option>
+            </select>
+          </label>
+          <label>
+            <span>접종 여부</span>
+            <select name="vaccination_confirmed" required>
+              <option value="">선택</option>
+              <option value="true">확인 완료</option>
+              <option value="false">미확인</option>
+            </select>
+          </label>
+        </div>
+
+        <label>
+          <span>보호자 연락처</span>
+          <input type="tel" name="guardian_phone" inputmode="numeric" pattern="[0-9]{10,11}" placeholder="01012345678" required>
+        </label>
+
+        <label>
+          <span>특이사항</span>
+          <textarea name="special_notes" rows="4" maxlength="1000" placeholder="질병, 복약, 공격성, 낯가림 등 매장에서 확인할 내용을 남겨주세요."></textarea>
+        </label>
+
+        <div id="summary" class="summary">날짜와 체중을 선택하면 예상 금액이 표시됩니다.</div>
+        <button id="submit" type="submit">예약 요청하기</button>
+        <p id="message" class="message" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </main>
+  <script src="app.js" defer></script>
+</body>
+</html>
