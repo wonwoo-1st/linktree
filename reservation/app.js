@@ -6,14 +6,10 @@
   const calendar = document.getElementById('range-calendar');
   const calendarTitle = document.getElementById('calendar-title');
   const calendarDays = document.getElementById('calendar-days');
-  const selectSheet = document.getElementById('select-sheet');
-  const selectTitle = document.getElementById('select-title');
-  const selectOptions = document.getElementById('select-options');
   const rates = { 4: 30000, 6: 35000, 8: 40000 };
   const apiBase = (document.querySelector('meta[name="reservation-api-base"]')?.content || '').replace(/\/$/, '');
   const monthFormatter = new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long', timeZone: 'UTC' });
   let calendarMonth = firstDayOfMonth(new Date());
-  let activeSelect = null;
 
   function boolValue(value) {
     if (value === 'true') return true;
@@ -103,48 +99,49 @@
     button.querySelector('.select-trigger-value').textContent = value;
     button.classList.toggle('is-placeholder', !select.value);
     button.setAttribute('aria-label', `${select.closest('label')?.querySelector('span')?.textContent || '항목'}: ${value}`);
+    syncSelectMenu(select);
   }
 
   function syncAllSelectButtons() {
     form.querySelectorAll('select').forEach(syncSelectButton);
   }
 
-  function closeSelectSheet() {
-    selectSheet.hidden = true;
-    selectSheet.classList.remove('is-open');
-    document.body.classList.remove('sheet-open');
-    activeSelect = null;
-  }
-
-  function chooseSelectValue(value) {
-    if (!activeSelect) return;
-    activeSelect.value = value;
-    syncSelectButton(activeSelect);
-    activeSelect.dispatchEvent(new Event('input', { bubbles: true }));
-    activeSelect.dispatchEvent(new Event('change', { bubbles: true }));
-    closeSelectSheet();
-  }
-
-  function openSelectSheet(select) {
-    activeSelect = select;
-    const label = select.closest('label')?.querySelector('span')?.textContent || '선택';
-    selectTitle.textContent = label;
-    selectOptions.textContent = '';
-
-    Array.from(select.options).forEach((option) => {
-      const item = document.createElement('button');
-      item.type = 'button';
-      item.className = 'select-option';
-      item.dataset.value = option.value;
-      item.setAttribute('aria-pressed', String(option.value === select.value));
-      item.innerHTML = `<span>${option.textContent}</span><span class="select-check" aria-hidden="true"></span>`;
-      item.addEventListener('click', () => chooseSelectValue(option.value));
-      selectOptions.appendChild(item);
+  function syncSelectMenu(select) {
+    const menu = select.nextElementSibling?.nextElementSibling;
+    if (!menu || !menu.classList.contains('select-menu')) return;
+    menu.querySelectorAll('.select-option').forEach((option) => {
+      option.setAttribute('aria-selected', String(option.dataset.value === select.value));
     });
+  }
 
-    selectSheet.hidden = false;
-    requestAnimationFrame(() => selectSheet.classList.add('is-open'));
-    document.body.classList.add('sheet-open');
+  function closeSelectMenus(exceptSelect) {
+    form.querySelectorAll('select').forEach((select) => {
+      if (exceptSelect && select === exceptSelect) return;
+      const trigger = select.nextElementSibling;
+      const menu = trigger?.nextElementSibling;
+      trigger?.classList.remove('is-open');
+      trigger?.setAttribute('aria-expanded', 'false');
+      if (menu?.classList.contains('select-menu')) menu.hidden = true;
+    });
+  }
+
+  function chooseSelectValue(select, value) {
+    select.value = value;
+    syncSelectButton(select);
+    select.dispatchEvent(new Event('input', { bubbles: true }));
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    closeSelectMenus();
+  }
+
+  function toggleSelectMenu(select) {
+    const trigger = select.nextElementSibling;
+    const menu = trigger?.nextElementSibling;
+    if (!trigger || !menu?.classList.contains('select-menu')) return;
+    const shouldOpen = menu.hidden;
+    closeSelectMenus(select);
+    trigger.classList.toggle('is-open', shouldOpen);
+    menu.hidden = !shouldOpen;
+    if (shouldOpen) syncSelectMenu(select);
   }
 
   function enhanceSelects() {
@@ -155,18 +152,40 @@
       const trigger = document.createElement('button');
       trigger.type = 'button';
       trigger.className = 'select-trigger';
+      trigger.setAttribute('aria-haspopup', 'listbox');
+      trigger.setAttribute('aria-expanded', 'false');
       trigger.innerHTML = '<span class="select-trigger-value"></span><span class="select-chevron" aria-hidden="true"></span>';
-      trigger.addEventListener('click', () => openSelectSheet(select));
+      const menu = document.createElement('div');
+      menu.className = 'select-menu';
+      menu.hidden = true;
+      menu.setAttribute('role', 'listbox');
+      Array.from(select.options).forEach((option) => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'select-option';
+        item.dataset.value = option.value;
+        item.setAttribute('role', 'option');
+        item.innerHTML = `<span>${option.textContent}</span><span class="select-check" aria-hidden="true"></span>`;
+        item.addEventListener('click', (event) => {
+          event.stopPropagation();
+          chooseSelectValue(select, option.value);
+        });
+        menu.appendChild(item);
+      });
+      trigger.addEventListener('click', (event) => {
+        event.stopPropagation();
+        toggleSelectMenu(select);
+        trigger.setAttribute('aria-expanded', String(trigger.classList.contains('is-open')));
+      });
       select.insertAdjacentElement('afterend', trigger);
+      trigger.insertAdjacentElement('afterend', menu);
       syncSelectButton(select);
       select.addEventListener('change', () => syncSelectButton(select));
     });
 
-    selectSheet.querySelectorAll('[data-select-close]').forEach((control) => {
-      control.addEventListener('click', closeSelectSheet);
-    });
+    document.addEventListener('click', () => closeSelectMenus());
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && !selectSheet.hidden) closeSelectSheet();
+      if (event.key === 'Escape') closeSelectMenus();
     });
   }
 
