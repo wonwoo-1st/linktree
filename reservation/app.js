@@ -3,8 +3,13 @@
   const summary = document.getElementById('summary');
   const message = document.getElementById('message');
   const submit = document.getElementById('submit');
+  const calendar = document.getElementById('range-calendar');
+  const calendarTitle = document.getElementById('calendar-title');
+  const calendarDays = document.getElementById('calendar-days');
   const rates = { 4: 30000, 6: 35000, 8: 40000 };
   const apiBase = (document.querySelector('meta[name="reservation-api-base"]')?.content || '').replace(/\/$/, '');
+  const monthFormatter = new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long', timeZone: 'UTC' });
+  let calendarMonth = firstDayOfMonth(new Date());
 
   function boolValue(value) {
     if (value === 'true') return true;
@@ -23,6 +28,30 @@
     return Math.round((end - start) / 86400000);
   }
 
+  function parseDate(value) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || '');
+    if (!match) return null;
+    return new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12));
+  }
+
+  function formatDate(date) {
+    return date.toISOString().slice(0, 10);
+  }
+
+  function firstDayOfMonth(date) {
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1, 12));
+  }
+
+  function addDays(date, days) {
+    const next = new Date(date.getTime());
+    next.setUTCDate(next.getUTCDate() + days);
+    return next;
+  }
+
+  function addMonths(date, months) {
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + months, 1, 12));
+  }
+
   function formatWon(value) {
     return `${value.toLocaleString('ko-KR')}원`;
   }
@@ -39,6 +68,7 @@
       checkout: String(data.get('checkout') || ''),
       neutered: boolValue(String(data.get('neutered') || '')),
       vaccination_confirmed: boolValue(String(data.get('vaccination_confirmed') || '')),
+      kindergarten_class: String(data.get('kindergarten_class') || ''),
       guardian_phone: cleanPhone(data.get('guardian_phone')),
       special_notes: String(data.get('special_notes') || '').trim(),
       company: String(data.get('company') || '')
@@ -69,11 +99,86 @@
       summary.textContent = '체크아웃 날짜는 체크인 날짜보다 뒤로 선택해주세요.';
       return;
     }
-    summary.textContent = `${nights}박 · 1박 ${formatWon(rate)} · 결제 예정 ${formatWon(rate * nights)}`;
+    const amount = rate * nights;
+    if (value.kindergarten_class === '매일반') {
+      summary.textContent = `${nights}박 · 정상가 ${formatWon(amount)} · 매장 확인 후 할인승인 시 평일 50%, 주말·공휴일 30% 할인이 적용됩니다.`;
+      return;
+    }
+    summary.textContent = `${nights}박 · 1박 ${formatWon(rate)} · 결제 예정 ${formatWon(amount)}`;
+  }
+
+  function renderCalendar() {
+    const checkin = parseDate(form.elements.checkin.value);
+    const checkout = parseDate(form.elements.checkout.value);
+    const monthStart = firstDayOfMonth(calendarMonth);
+    const firstCell = addDays(monthStart, -monthStart.getUTCDay());
+
+    calendarTitle.textContent = monthFormatter.format(monthStart);
+    calendarDays.textContent = '';
+
+    for (let i = 0; i < 42; i += 1) {
+      const date = addDays(firstCell, i);
+      const dateKey = formatDate(date);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'calendar-day';
+      button.dataset.date = dateKey;
+      button.textContent = String(date.getUTCDate());
+      button.setAttribute('aria-label', dateKey);
+
+      if (date.getUTCMonth() !== monthStart.getUTCMonth()) button.classList.add('is-muted');
+      if (checkin && dateKey === formatDate(checkin)) button.classList.add('is-start', 'is-in-range');
+      if (checkout && dateKey === formatDate(checkout)) button.classList.add('is-end', 'is-in-range');
+      if (checkin && checkout && date > checkin && date < checkout) button.classList.add('is-in-range');
+
+      button.addEventListener('click', () => selectRangeDate(date));
+      calendarDays.appendChild(button);
+    }
+  }
+
+  function selectRangeDate(date) {
+    const checkin = parseDate(form.elements.checkin.value);
+    const checkout = parseDate(form.elements.checkout.value);
+    const selected = formatDate(date);
+
+    if (!checkin || checkout || date <= checkin) {
+      form.elements.checkin.value = selected;
+      form.elements.checkout.value = '';
+    } else {
+      form.elements.checkout.value = selected;
+    }
+
+    form.elements.checkin.dispatchEvent(new Event('change', { bubbles: true }));
+    form.elements.checkout.dispatchEvent(new Event('change', { bubbles: true }));
+    renderCalendar();
+  }
+
+  function syncCalendarMonthFromInput(event) {
+    const selected = parseDate(event.target.value);
+    if (selected) calendarMonth = firstDayOfMonth(selected);
+    renderCalendar();
   }
 
   form.addEventListener('input', refreshSummary);
   form.addEventListener('change', refreshSummary);
+  form.elements.checkin.addEventListener('change', syncCalendarMonthFromInput);
+  form.elements.checkout.addEventListener('change', syncCalendarMonthFromInput);
+  calendar.querySelector('[data-calendar-prev]').addEventListener('click', () => {
+    calendarMonth = addMonths(calendarMonth, -1);
+    renderCalendar();
+  });
+  calendar.querySelector('[data-calendar-next]').addEventListener('click', () => {
+    calendarMonth = addMonths(calendarMonth, 1);
+    renderCalendar();
+  });
+  submit.addEventListener('click', () => {
+    submit.classList.remove('is-popping');
+    void submit.offsetWidth;
+    submit.classList.add('is-popping');
+  });
+  submit.addEventListener('animationend', () => {
+    submit.classList.remove('is-popping');
+  });
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const value = readForm();
@@ -114,5 +219,6 @@
     }
   });
   applyBranchFromQuery();
+  renderCalendar();
   refreshSummary();
 })();

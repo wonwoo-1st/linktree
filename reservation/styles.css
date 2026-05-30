@@ -10,7 +10,8 @@ body {
   padding: 18px 12px 42px;
 }
 .page {
-  width: min(100%, 430px);
+  width: calc(100vw - 56px);
+  max-width: 430px;
 }
 .paper {
   position: relative;
@@ -79,6 +80,7 @@ label {
 }
 input, select, textarea {
   width: 100%;
+  min-width: 0;
   min-height: 46px;
   border: 2px solid #d9c7a7;
   border-radius: 12px;
@@ -94,8 +96,134 @@ textarea {
 }
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
+}
+.grid > label {
+  min-width: 0;
+}
+.date-grid {
+  margin-bottom: 0;
+}
+input[type="date"] {
+  max-width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.date-field input {
+  cursor: pointer;
+}
+.date-field input:focus {
+  outline: 3px solid rgba(102, 190, 236, 0.28);
+  border-color: #7cc7eb;
+}
+.range-calendar {
+  overflow: hidden;
+  padding: 10px;
+  border: 2px solid #d9c7a7;
+  border-radius: 16px;
+  background: #fffdf8;
+}
+.calendar-head {
+  display: grid;
+  grid-template-columns: 38px 1fr 38px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.calendar-head strong {
+  text-align: center;
+  font-family: 'Jua', sans-serif;
+  font-size: 18px;
+  color: #4d3a2f;
+}
+.calendar-nav {
+  width: 38px;
+  min-height: 34px;
+  border-radius: 12px;
+  background: #f5e8c8;
+  color: #5c412f;
+  font-family: 'Jua', sans-serif;
+  font-size: 24px;
+  line-height: 1;
+  box-shadow: 0 4px 0 #d3bc8e;
+}
+.calendar-weekdays,
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.calendar-weekdays span {
+  padding: 3px 0 7px;
+  text-align: center;
+  color: #927964;
+  font-size: 11px;
+  font-weight: 800;
+}
+.calendar-day {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  aspect-ratio: 1;
+  min-height: 38px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #2b2418;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: none;
+}
+.calendar-day::before {
+  content: "";
+  position: absolute;
+  inset: 4px 0;
+  z-index: -2;
+}
+.calendar-day::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  z-index: -1;
+  border-radius: 999px;
+}
+.calendar-day.is-muted {
+  color: #c6bba6;
+}
+.calendar-day.is-in-range::before {
+  background: linear-gradient(110deg, rgba(197, 232, 255, 0.55), rgba(116, 199, 245, 0.34), rgba(219, 243, 255, 0.62));
+  background-size: 220% 100%;
+  animation: rangeFlow 1.9s ease-in-out infinite;
+}
+.calendar-day.is-start::before {
+  left: 50%;
+  border-radius: 999px 0 0 999px;
+}
+.calendar-day.is-end::before {
+  right: 50%;
+  border-radius: 0 999px 999px 0;
+}
+.calendar-day.is-start::after,
+.calendar-day.is-end::after {
+  background: #74c7f5;
+  box-shadow: 0 5px 12px rgba(65, 151, 202, 0.24);
+}
+.calendar-day.is-start,
+.calendar-day.is-end {
+  color: #17384d;
+}
+.calendar-day:active {
+  transform: translateY(2px) scale(0.97);
+}
+.calendar-day:focus-visible {
+  outline: 3px solid rgba(102, 190, 236, 0.42);
+  outline-offset: -3px;
+}
+@keyframes rangeFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 .summary {
   min-height: 46px;
@@ -107,6 +235,8 @@ textarea {
   line-height: 1.55;
 }
 button {
+  position: relative;
+  overflow: hidden;
   min-height: 52px;
   border: 0;
   border-radius: 999px;
@@ -116,6 +246,36 @@ button {
   font-size: 20px;
   cursor: pointer;
   box-shadow: 0 8px 0 #b93131;
+  transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+}
+#submit:not(:disabled):active {
+  transform: translateY(5px) scale(0.985);
+  box-shadow: 0 3px 0 #b93131;
+}
+#submit::before {
+  content: "";
+  position: absolute;
+  inset: -40% -20%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.68) 0 12%, transparent 13% 100%);
+  transform: translateX(-130%) rotate(12deg);
+  opacity: 0;
+}
+#submit.is-popping {
+  animation: submitPop 520ms cubic-bezier(.2, 1.4, .3, 1);
+}
+#submit.is-popping::before {
+  animation: submitSpark 520ms ease-out;
+}
+@keyframes submitPop {
+  0% { transform: translateY(0) scale(1); filter: brightness(1); }
+  36% { transform: translateY(4px) scale(0.97); filter: brightness(1.05); }
+  68% { transform: translateY(-4px) scale(1.035); filter: brightness(1.12); }
+  100% { transform: translateY(0) scale(1); filter: brightness(1); }
+}
+@keyframes submitSpark {
+  0% { transform: translateX(-130%) rotate(12deg); opacity: 0; }
+  35% { opacity: 1; }
+  100% { transform: translateX(130%) rotate(12deg); opacity: 0; }
 }
 button:disabled {
   opacity: .6;

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260530-calendar">
 </head>
 <body>
   <main class="page">
@@ -55,15 +55,26 @@
           </select>
         </label>
 
-        <div class="grid">
-          <label>
+        <div class="grid date-grid">
+          <label class="date-field">
             <span>체크인</span>
             <input type="date" name="checkin" required>
           </label>
-          <label>
+          <label class="date-field">
             <span>체크아웃</span>
             <input type="date" name="checkout" required>
           </label>
+        </div>
+        <div id="range-calendar" class="range-calendar" aria-label="숙박 날짜 범위 선택">
+          <div class="calendar-head">
+            <button type="button" class="calendar-nav" data-calendar-prev aria-label="이전 달">‹</button>
+            <strong id="calendar-title"></strong>
+            <button type="button" class="calendar-nav" data-calendar-next aria-label="다음 달">›</button>
+          </div>
+          <div class="calendar-weekdays" aria-hidden="true">
+            <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+          </div>
+          <div id="calendar-days" class="calendar-days"></div>
         </div>
 
         <div class="grid">
@@ -88,6 +99,14 @@
         <label>
           <span>보호자 연락처</span>
           <input type="tel" name="guardian_phone" inputmode="numeric" pattern="[0-9]{10,11}" placeholder="01012345678" required>
+        </label>
+
+        <label>
+          <span>우리집첫째 유치원생</span>
+          <select name="kindergarten_class">
+            <option value="">해당 없음</option>
+            <option value="매일반">매일반</option>
+          </select>
         </label>
 
         <label>
