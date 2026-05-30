@@ -6,10 +6,14 @@
   const calendar = document.getElementById('range-calendar');
   const calendarTitle = document.getElementById('calendar-title');
   const calendarDays = document.getElementById('calendar-days');
+  const selectSheet = document.getElementById('select-sheet');
+  const selectTitle = document.getElementById('select-title');
+  const selectOptions = document.getElementById('select-options');
   const rates = { 4: 30000, 6: 35000, 8: 40000 };
   const apiBase = (document.querySelector('meta[name="reservation-api-base"]')?.content || '').replace(/\/$/, '');
   const monthFormatter = new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long', timeZone: 'UTC' });
   let calendarMonth = firstDayOfMonth(new Date());
+  let activeSelect = null;
 
   function boolValue(value) {
     if (value === 'true') return true;
@@ -79,12 +83,91 @@
     const branch = new URLSearchParams(window.location.search).get('branch');
     if (branch === 'sasang' || branch === 'eomgung') {
       form.elements.branch.value = branch;
+      form.elements.branch.dispatchEvent(new Event('change', { bubbles: true }));
     }
   }
 
   function setMessage(text, type) {
     message.textContent = text;
     message.className = `message ${type || ''}`.trim();
+  }
+
+  function selectedOptionText(select) {
+    return select.selectedOptions[0]?.textContent || select.options[0]?.textContent || '선택';
+  }
+
+  function syncSelectButton(select) {
+    const button = select.nextElementSibling;
+    if (!button || !button.classList.contains('select-trigger')) return;
+    const value = selectedOptionText(select);
+    button.querySelector('.select-trigger-value').textContent = value;
+    button.classList.toggle('is-placeholder', !select.value);
+    button.setAttribute('aria-label', `${select.closest('label')?.querySelector('span')?.textContent || '항목'}: ${value}`);
+  }
+
+  function syncAllSelectButtons() {
+    form.querySelectorAll('select').forEach(syncSelectButton);
+  }
+
+  function closeSelectSheet() {
+    selectSheet.hidden = true;
+    selectSheet.classList.remove('is-open');
+    document.body.classList.remove('sheet-open');
+    activeSelect = null;
+  }
+
+  function chooseSelectValue(value) {
+    if (!activeSelect) return;
+    activeSelect.value = value;
+    syncSelectButton(activeSelect);
+    activeSelect.dispatchEvent(new Event('input', { bubbles: true }));
+    activeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    closeSelectSheet();
+  }
+
+  function openSelectSheet(select) {
+    activeSelect = select;
+    const label = select.closest('label')?.querySelector('span')?.textContent || '선택';
+    selectTitle.textContent = label;
+    selectOptions.textContent = '';
+
+    Array.from(select.options).forEach((option) => {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'select-option';
+      item.dataset.value = option.value;
+      item.setAttribute('aria-pressed', String(option.value === select.value));
+      item.innerHTML = `<span>${option.textContent}</span><span class="select-check" aria-hidden="true"></span>`;
+      item.addEventListener('click', () => chooseSelectValue(option.value));
+      selectOptions.appendChild(item);
+    });
+
+    selectSheet.hidden = false;
+    requestAnimationFrame(() => selectSheet.classList.add('is-open'));
+    document.body.classList.add('sheet-open');
+  }
+
+  function enhanceSelects() {
+    form.querySelectorAll('select').forEach((select) => {
+      if (select.classList.contains('native-select')) return;
+      select.classList.add('native-select');
+      select.tabIndex = -1;
+      const trigger = document.createElement('button');
+      trigger.type = 'button';
+      trigger.className = 'select-trigger';
+      trigger.innerHTML = '<span class="select-trigger-value"></span><span class="select-chevron" aria-hidden="true"></span>';
+      trigger.addEventListener('click', () => openSelectSheet(select));
+      select.insertAdjacentElement('afterend', trigger);
+      syncSelectButton(select);
+      select.addEventListener('change', () => syncSelectButton(select));
+    });
+
+    selectSheet.querySelectorAll('[data-select-close]').forEach((control) => {
+      control.addEventListener('click', closeSelectSheet);
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !selectSheet.hidden) closeSelectSheet();
+    });
   }
 
   function refreshSummary() {
@@ -161,6 +244,13 @@
 
   form.addEventListener('input', refreshSummary);
   form.addEventListener('change', refreshSummary);
+  form.addEventListener('reset', () => {
+    requestAnimationFrame(() => {
+      syncAllSelectButtons();
+      renderCalendar();
+      refreshSummary();
+    });
+  });
   form.elements.checkin.addEventListener('change', syncCalendarMonthFromInput);
   form.elements.checkout.addEventListener('change', syncCalendarMonthFromInput);
   calendar.querySelector('[data-calendar-prev]').addEventListener('click', () => {
@@ -218,6 +308,7 @@
       submit.disabled = false;
     }
   });
+  enhanceSelects();
   applyBranchFromQuery();
   renderCalendar();
   refreshSummary();

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260530-calendar">
+  <link rel="stylesheet" href="styles.css?v=20260530-ios">
 </head>
 <body>
   <main class="page">
@@ -120,6 +120,17 @@
       </form>
     </section>
   </main>
+  <div id="select-sheet" class="select-sheet" hidden>
+    <div class="select-scrim" data-select-close></div>
+    <section class="select-panel" role="dialog" aria-modal="true" aria-labelledby="select-title">
+      <div class="select-grabber" aria-hidden="true"></div>
+      <div class="select-panel-head">
+        <h2 id="select-title"></h2>
+        <button type="button" class="select-close" data-select-close aria-label="닫기">×</button>
+      </div>
+      <div id="select-options" class="select-options"></div>
+    </section>
+  </div>
   <script src="app.js" defer></script>
 </body>
 </html>
