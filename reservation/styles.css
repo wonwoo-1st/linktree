@@ -346,6 +346,16 @@ input[type="date"] {
 .calendar-day.is-muted {
   color: #c6bba6;
 }
+.calendar-day.is-disabled {
+  color: rgba(112, 105, 94, 0.28);
+  cursor: not-allowed;
+}
+.calendar-day.is-disabled::after {
+  background: rgba(255, 255, 255, 0.24);
+}
+.calendar-day.is-disabled:active {
+  transform: none;
+}
 .calendar-day.is-in-range::before {
   background: linear-gradient(110deg, rgba(197, 232, 255, 0.55), rgba(116, 199, 245, 0.34), rgba(219, 243, 255, 0.62));
   background-size: 220% 100%;

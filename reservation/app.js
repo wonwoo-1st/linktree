@@ -9,7 +9,8 @@
   const rates = { 4: 30000, 6: 35000, 8: 40000 };
   const apiBase = (document.querySelector('meta[name="reservation-api-base"]')?.content || '').replace(/\/$/, '');
   const monthFormatter = new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long', timeZone: 'UTC' });
-  let calendarMonth = firstDayOfMonth(new Date());
+  const today = parseDate(todayKey());
+  let calendarMonth = firstDayOfMonth(today || new Date());
 
   function boolValue(value) {
     if (value === 'true') return true;
@@ -19,6 +20,17 @@
 
   function cleanPhone(value) {
     return String(value || '').replace(/\D/g, '');
+  }
+
+  function todayKey() {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).formatToParts(new Date());
+    const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+    return `${value.year}-${value.month}-${value.day}`;
   }
 
   function nightsBetween(checkin, checkout) {
@@ -86,6 +98,26 @@
   function setMessage(text, type) {
     message.textContent = text;
     message.className = `message ${type || ''}`.trim();
+  }
+
+  function syncDateLimits() {
+    const minCheckin = todayKey();
+    const checkinInput = form.elements.checkin;
+    const checkoutInput = form.elements.checkout;
+    checkinInput.min = minCheckin;
+
+    if (checkinInput.value && checkinInput.value < minCheckin) {
+      checkinInput.value = '';
+      checkoutInput.value = '';
+      setMessage('오늘 이전 날짜는 예약할 수 없습니다.', 'error');
+    }
+
+    const checkin = parseDate(checkinInput.value);
+    const minCheckout = checkin ? formatDate(addDays(checkin, 1)) : formatDate(addDays(parseDate(minCheckin), 1));
+    checkoutInput.min = minCheckout;
+    if (checkoutInput.value && checkoutInput.value < minCheckout) {
+      checkoutInput.value = '';
+    }
   }
 
   function selectedOptionText(select) {
@@ -210,10 +242,12 @@
   }
 
   function renderCalendar() {
+    syncDateLimits();
     const checkin = parseDate(form.elements.checkin.value);
     const checkout = parseDate(form.elements.checkout.value);
     const monthStart = firstDayOfMonth(calendarMonth);
     const firstCell = addDays(monthStart, -monthStart.getUTCDay());
+    const minDate = parseDate(todayKey());
 
     calendarTitle.textContent = monthFormatter.format(monthStart);
     calendarDays.textContent = '';
@@ -229,6 +263,11 @@
       button.setAttribute('aria-label', dateKey);
 
       if (date.getUTCMonth() !== monthStart.getUTCMonth()) button.classList.add('is-muted');
+      if (minDate && date < minDate) {
+        button.classList.add('is-disabled');
+        button.disabled = true;
+        button.setAttribute('aria-disabled', 'true');
+      }
       if (checkin && dateKey === formatDate(checkin)) button.classList.add('is-start', 'is-in-range');
       if (checkout && dateKey === formatDate(checkout)) button.classList.add('is-end', 'is-in-range');
       if (checkin && checkout && date > checkin && date < checkout) button.classList.add('is-in-range');
@@ -239,6 +278,11 @@
   }
 
   function selectRangeDate(date) {
+    const minDate = parseDate(todayKey());
+    if (minDate && date < minDate) {
+      setMessage('오늘 이전 날짜는 예약할 수 없습니다.', 'error');
+      return;
+    }
     const checkin = parseDate(form.elements.checkin.value);
     const checkout = parseDate(form.elements.checkout.value);
     const selected = formatDate(date);
@@ -256,6 +300,7 @@
   }
 
   function syncCalendarMonthFromInput(event) {
+    syncDateLimits();
     const selected = parseDate(event.target.value);
     if (selected) calendarMonth = firstDayOfMonth(selected);
     renderCalendar();
@@ -301,6 +346,10 @@
     }
     if (!value.branch || !value.dog_name || !value.breed || !value.weight_kg || !value.checkin || !value.checkout || value.neutered === null || value.vaccination_confirmed === null || nights <= 0) {
       setMessage('지점, 강아지 정보, 일정, 필수 확인 항목을 모두 입력해주세요.', 'error');
+      return;
+    }
+    if (value.checkin < todayKey()) {
+      setMessage('오늘 이전 날짜는 예약할 수 없습니다.', 'error');
       return;
     }
     if (!/^\d{10,11}$/.test(value.guardian_phone)) {
