@@ -56,6 +56,13 @@ body {
   text-align: center;
   margin-bottom: 24px;
 }
+.brand-logo {
+  display: block;
+  width: min(76%, 246px);
+  height: auto;
+  margin: -18px auto 10px;
+  filter: drop-shadow(0 12px 22px rgba(96, 64, 34, 0.12));
+}
 .hero p {
   margin: 0 0 8px;
   font-size: 11px;
