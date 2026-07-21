@@ -6,7 +6,10 @@
   const calendar = document.getElementById('range-calendar');
   const calendarTitle = document.getElementById('calendar-title');
   const calendarDays = document.getElementById('calendar-days');
+  const dogList = document.getElementById('dog-list');
+  const addDogButton = document.getElementById('add-dog');
   const rates = { 4: 30000, 6: 35000, 8: 40000 };
+  const maxDogs = 5;
   const apiBase = (document.querySelector('meta[name="reservation-api-base"]')?.content || '').replace(/\/$/, '');
   const monthFormatter = new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'long', timeZone: 'UTC' });
   const today = parseDate(todayKey());
@@ -68,19 +71,38 @@
     return `${value.toLocaleString('ko-KR')}원`;
   }
 
+  function fieldValue(container, name) {
+    const field = container.querySelector(`[name="${name}"]`);
+    return field ? field.value : '';
+  }
+
+  function readDogs() {
+    return Array.from(dogList.querySelectorAll('[data-dog-card]')).map((card) => ({
+      dog_name: String(fieldValue(card, 'dog_name') || '').trim(),
+      breed: String(fieldValue(card, 'breed') || '').trim(),
+      weight_kg: Number(fieldValue(card, 'weight_kg')),
+      neutered: boolValue(String(fieldValue(card, 'neutered') || '')),
+      vaccination_confirmed: boolValue(String(fieldValue(card, 'vaccination_confirmed') || '')),
+      kindergarten_class: String(fieldValue(card, 'kindergarten_class') || '')
+    }));
+  }
+
   function readForm() {
     const data = new FormData(form);
+    const dogs = readDogs();
+    const firstDog = dogs[0] || {};
     return {
       branch: String(data.get('branch') || ''),
       source: 'instagram_bio',
-      dog_name: String(data.get('dog_name') || '').trim(),
-      breed: String(data.get('breed') || '').trim(),
-      weight_kg: Number(data.get('weight_kg')),
+      dogs,
+      dog_name: firstDog.dog_name || '',
+      breed: firstDog.breed || '',
+      weight_kg: firstDog.weight_kg || 0,
       checkin: String(data.get('checkin') || ''),
       checkout: String(data.get('checkout') || ''),
-      neutered: boolValue(String(data.get('neutered') || '')),
-      vaccination_confirmed: boolValue(String(data.get('vaccination_confirmed') || '')),
-      kindergarten_class: String(data.get('kindergarten_class') || ''),
+      neutered: firstDog.neutered ?? null,
+      vaccination_confirmed: firstDog.vaccination_confirmed ?? null,
+      kindergarten_class: firstDog.kindergarten_class || '',
       guardian_phone: cleanPhone(data.get('guardian_phone')),
       special_notes: String(data.get('special_notes') || '').trim(),
       company: String(data.get('company') || '')
@@ -221,24 +243,114 @@
     });
   }
 
+  function dogCardTemplate(index) {
+    const card = document.createElement('div');
+    card.className = 'dog-card';
+    card.dataset.dogCard = '';
+    card.innerHTML = `
+      <div class="dog-card-head">
+        <strong>${index}번째 강아지</strong>
+        <button class="dog-remove" type="button" aria-label="강아지 삭제">삭제</button>
+      </div>
+      <label>
+        <span>강아지 이름</span>
+        <input type="text" name="dog_name" maxlength="32" placeholder="예: 밴쭈" required>
+      </label>
+      <label>
+        <span>종류</span>
+        <input type="text" name="breed" maxlength="40" placeholder="예: 말티즈, 푸들, 비숑" required>
+      </label>
+      <label>
+        <span>체중</span>
+        <select name="weight_kg" required>
+          <option value="">체중 선택</option>
+          <option value="4">4kg 이하</option>
+          <option value="6">4kg 초과~6kg 이하</option>
+          <option value="8">6kg 초과~8kg 이하</option>
+        </select>
+      </label>
+      <div class="grid">
+        <label>
+          <span>중성화 여부</span>
+          <select name="neutered" required>
+            <option value="">선택</option>
+            <option value="true">완료</option>
+            <option value="false">미완료</option>
+          </select>
+        </label>
+        <label>
+          <span>접종 여부</span>
+          <select name="vaccination_confirmed" required>
+            <option value="">선택</option>
+            <option value="true">확인 완료</option>
+            <option value="false">미확인</option>
+          </select>
+        </label>
+      </div>
+      <label>
+        <span>바우센트 유치원생</span>
+        <select name="kindergarten_class">
+          <option value="">해당 없음</option>
+          <option value="매일반">매일반</option>
+        </select>
+      </label>
+    `;
+    return card;
+  }
+
+  function syncDogCards() {
+    const cards = Array.from(dogList.querySelectorAll('[data-dog-card]'));
+    cards.forEach((card, index) => {
+      card.querySelector('.dog-card-head strong').textContent = `${index + 1}번째 강아지`;
+      const remove = card.querySelector('.dog-remove');
+      remove.hidden = cards.length === 1;
+    });
+    addDogButton.disabled = cards.length >= maxDogs;
+  }
+
+  function addDogCard() {
+    const count = dogList.querySelectorAll('[data-dog-card]').length;
+    if (count >= maxDogs) return;
+    const card = dogCardTemplate(count + 1);
+    dogList.appendChild(card);
+    enhanceSelects();
+    syncDogCards();
+    refreshSummary();
+    card.querySelector('input[name="dog_name"]')?.focus();
+  }
+
+  dogList.addEventListener('click', (event) => {
+    const remove = event.target.closest('.dog-remove');
+    if (!remove) return;
+    const card = remove.closest('[data-dog-card]');
+    if (card && dogList.querySelectorAll('[data-dog-card]').length > 1) {
+      card.remove();
+      syncDogCards();
+      refreshSummary();
+    }
+  });
+  addDogButton.addEventListener('click', addDogCard);
+
   function refreshSummary() {
     const value = readForm();
     const nights = nightsBetween(value.checkin, value.checkout);
-    const rate = rates[value.weight_kg];
-    if (!value.weight_kg || !value.checkin || !value.checkout) {
-      summary.textContent = '날짜와 체중을 선택하면 예상 금액이 표시됩니다.';
+    const pricedDogs = value.dogs.filter((dog) => dog.weight_kg);
+    if (!pricedDogs.length || !value.checkin || !value.checkout) {
+      summary.textContent = '날짜와 강아지별 체중을 선택하면 예상 금액이 표시됩니다.';
       return;
     }
     if (nights <= 0) {
       summary.textContent = '체크아웃 날짜는 체크인 날짜보다 뒤로 선택해주세요.';
       return;
     }
-    const amount = rate * nights;
-    if (value.kindergarten_class === '매일반') {
-      summary.textContent = `${nights}박 · 정상가 ${formatWon(amount)} · 매장 확인 후 할인승인 시 평일 50%, 주말·공휴일 30% 할인이 적용됩니다.`;
+    const amount = pricedDogs.reduce((sum, dog) => sum + (rates[dog.weight_kg] || 0) * nights, 0);
+    const hasKindergarten = pricedDogs.some((dog) => dog.kindergarten_class === '매일반');
+    const dogLabel = `${pricedDogs.length}마리`;
+    if (hasKindergarten) {
+      summary.textContent = `${dogLabel} · ${nights}박 · 정상가 합계 ${formatWon(amount)} · 매장 확인 후 할인승인 시 유치원생 강아지별 할인이 적용됩니다.`;
       return;
     }
-    summary.textContent = `${nights}박 · 1박 ${formatWon(rate)} · 결제 예정 ${formatWon(amount)}`;
+    summary.textContent = `${dogLabel} · ${nights}박 · 결제 예정 합계 ${formatWon(amount)}`;
   }
 
   function renderCalendar() {
@@ -344,7 +456,8 @@
       refreshSummary();
       return;
     }
-    if (!value.branch || !value.dog_name || !value.breed || !value.weight_kg || !value.checkin || !value.checkout || value.neutered === null || value.vaccination_confirmed === null || nights <= 0) {
+    const invalidDog = value.dogs.find((dog) => !dog.dog_name || !dog.breed || !dog.weight_kg || dog.neutered === null || dog.vaccination_confirmed === null);
+    if (!value.branch || !value.checkin || !value.checkout || invalidDog || nights <= 0) {
       setMessage('지점, 강아지 정보, 일정, 필수 확인 항목을 모두 입력해주세요.', 'error');
       return;
     }
@@ -367,8 +480,13 @@
       });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(body.error || '예약 요청에 실패했습니다.');
-      setMessage('예약 요청이 접수되었습니다. 매장 확인 후 확정 문자를 보내드립니다.', 'success');
+      const count = Number(body.reservation_count || value.dogs.length || 1);
+      setMessage(`${count}마리 예약 요청이 접수되었습니다. 매장 확인 후 확정 문자를 보내드립니다.`, 'success');
       form.reset();
+      while (dogList.querySelectorAll('[data-dog-card]').length > 1) {
+        dogList.querySelector('[data-dog-card]:last-child').remove();
+      }
+      syncDogCards();
       refreshSummary();
     } catch (error) {
       setMessage(error.message || '예약 요청 중 문제가 생겼습니다.', 'error');
@@ -377,6 +495,7 @@
     }
   });
   enhanceSelects();
+  syncDogCards();
   applyBranchFromQuery();
   renderCalendar();
   refreshSummary();

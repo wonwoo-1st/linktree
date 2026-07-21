@@ -36,25 +36,62 @@
           </select>
         </label>
 
-        <label>
-          <span>강아지 이름</span>
-          <input type="text" name="dog_name" maxlength="32" placeholder="예: 밴쭈" required>
-        </label>
-
-        <label>
-          <span>종류</span>
-          <input type="text" name="breed" maxlength="40" placeholder="예: 말티즈, 푸들, 비숑" required>
-        </label>
-
-        <label>
-          <span>체중</span>
-          <select name="weight_kg" required>
-            <option value="">체중 선택</option>
-            <option value="4">4kg 이하</option>
-            <option value="6">4kg 초과~6kg 이하</option>
-            <option value="8">6kg 초과~8kg 이하</option>
-          </select>
-        </label>
+        <section class="dog-section" aria-label="강아지 정보">
+          <div class="section-head">
+            <span>강아지 정보</span>
+            <button id="add-dog" class="secondary-button" type="button">추가</button>
+          </div>
+          <div id="dog-list" class="dog-list">
+            <div class="dog-card" data-dog-card>
+              <div class="dog-card-head">
+                <strong>1번째 강아지</strong>
+                <button class="dog-remove" type="button" aria-label="강아지 삭제" hidden>삭제</button>
+              </div>
+              <label>
+                <span>강아지 이름</span>
+                <input type="text" name="dog_name" maxlength="32" placeholder="예: 밴쭈" required>
+              </label>
+              <label>
+                <span>종류</span>
+                <input type="text" name="breed" maxlength="40" placeholder="예: 말티즈, 푸들, 비숑" required>
+              </label>
+              <label>
+                <span>체중</span>
+                <select name="weight_kg" required>
+                  <option value="">체중 선택</option>
+                  <option value="4">4kg 이하</option>
+                  <option value="6">4kg 초과~6kg 이하</option>
+                  <option value="8">6kg 초과~8kg 이하</option>
+                </select>
+              </label>
+              <div class="grid">
+                <label>
+                  <span>중성화 여부</span>
+                  <select name="neutered" required>
+                    <option value="">선택</option>
+                    <option value="true">완료</option>
+                    <option value="false">미완료</option>
+                  </select>
+                </label>
+                <label>
+                  <span>접종 여부</span>
+                  <select name="vaccination_confirmed" required>
+                    <option value="">선택</option>
+                    <option value="true">확인 완료</option>
+                    <option value="false">미확인</option>
+                  </select>
+                </label>
+              </div>
+              <label>
+                <span>바우센트 유치원생</span>
+                <select name="kindergarten_class">
+                  <option value="">해당 없음</option>
+                  <option value="매일반">매일반</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </section>
 
         <div class="grid date-grid">
           <label class="date-field">
@@ -78,36 +115,9 @@
           <div id="calendar-days" class="calendar-days"></div>
         </div>
 
-        <div class="grid">
-          <label>
-            <span>중성화 여부</span>
-            <select name="neutered" required>
-              <option value="">선택</option>
-              <option value="true">완료</option>
-              <option value="false">미완료</option>
-            </select>
-          </label>
-          <label>
-            <span>접종 여부</span>
-            <select name="vaccination_confirmed" required>
-              <option value="">선택</option>
-              <option value="true">확인 완료</option>
-              <option value="false">미확인</option>
-            </select>
-          </label>
-        </div>
-
         <label>
           <span>보호자 연락처</span>
           <input type="tel" name="guardian_phone" inputmode="numeric" pattern="[0-9]{10,11}" placeholder="01012345678" required>
-        </label>
-
-        <label>
-          <span>바우센트 유치원생</span>
-          <select name="kindergarten_class">
-            <option value="">해당 없음</option>
-            <option value="매일반">매일반</option>
-          </select>
         </label>
 
         <label>

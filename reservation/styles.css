@@ -261,6 +261,62 @@ textarea {
 .grid > label {
   min-width: 0;
 }
+.dog-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.section-head,
+.dog-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.section-head > span,
+.dog-card-head strong {
+  color: #4f4135;
+  font-size: 13px;
+  font-weight: 800;
+}
+.dog-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dog-card {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 12px;
+  border: 1px solid rgba(120, 105, 82, 0.18);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.48);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78), 0 10px 24px rgba(88, 76, 61, 0.07);
+}
+.secondary-button,
+.dog-remove {
+  min-height: 34px;
+  padding: 0 13px;
+  border-radius: 999px;
+  background: rgba(10, 132, 255, 0.12);
+  color: #0a5fb5;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: none;
+}
+.secondary-button:disabled {
+  opacity: 0.44;
+  cursor: not-allowed;
+}
+.dog-remove {
+  background: rgba(233, 85, 85, 0.1);
+  color: #b93131;
+}
+.dog-remove[hidden] {
+  display: none;
+}
 .date-grid {
   margin-bottom: 0;
 }
