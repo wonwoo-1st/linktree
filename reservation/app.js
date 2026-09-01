@@ -90,19 +90,12 @@
   function readForm() {
     const data = new FormData(form);
     const dogs = readDogs();
-    const firstDog = dogs[0] || {};
     return {
       branch: String(data.get('branch') || ''),
       source: 'instagram_bio',
       dogs,
-      dog_name: firstDog.dog_name || '',
-      breed: firstDog.breed || '',
-      weight_kg: firstDog.weight_kg || 0,
       checkin: String(data.get('checkin') || ''),
       checkout: String(data.get('checkout') || ''),
-      neutered: firstDog.neutered ?? null,
-      vaccination_confirmed: firstDog.vaccination_confirmed ?? null,
-      kindergarten_class: firstDog.kindergarten_class || '',
       guardian_phone: cleanPhone(data.get('guardian_phone')),
       special_notes: String(data.get('special_notes') || '').trim(),
       company: String(data.get('company') || '')
@@ -479,8 +472,13 @@
         body: JSON.stringify(value)
       });
       const body = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(body.error || '예약 요청에 실패했습니다.');
-      const count = Number(body.reservation_count || value.dogs.length || 1);
+      if (!response.ok || body.status !== 'ok') {
+        throw new Error(body.error || '예약 요청에 실패했습니다. 입력 내용을 유지했으니 매장에 문의해주세요.');
+      }
+      const count = Number(body.reservation_count);
+      if (!Number.isInteger(count) || count !== value.dogs.length) {
+        throw new Error('예약 처리 건수를 확인하지 못했습니다. 입력 내용을 유지했으니 매장에 문의해주세요.');
+      }
       setMessage(`${count}마리 예약 요청이 접수되었습니다. 매장 확인 후 확정 문자를 보내드립니다.`, 'success');
       form.reset();
       while (dogList.querySelectorAll('[data-dog-card]').length > 1) {
