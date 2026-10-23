@@ -336,6 +336,10 @@
       summary.textContent = '체크아웃 날짜는 체크인 날짜보다 뒤로 선택해주세요.';
       return;
     }
+    if (pricedDogs.length !== value.dogs.length) {
+      summary.textContent = `체중 미입력 ${value.dogs.length - pricedDogs.length}마리 · 모든 강아지의 체중을 선택하면 전체 예상 금액이 표시됩니다.`;
+      return;
+    }
     const amount = pricedDogs.reduce((sum, dog) => sum + (rates[dog.weight_kg] || 0) * nights, 0);
     const hasKindergarten = pricedDogs.some((dog) => dog.kindergarten_class === '매일반');
     const dogLabel = `${pricedDogs.length}마리`;
@@ -470,6 +474,8 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(value)
+      }).catch(() => {
+        throw new Error('연결 문제로 예약 접수 여부를 확인하지 못했습니다. 입력 내용은 유지되었습니다. 중복 예약을 피하려면 다시 요청하기 전에 매장에 접수 여부를 문의해주세요.');
       });
       const body = await response.json().catch(() => ({}));
       if (!response.ok || body.status !== 'ok') {
