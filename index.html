@@ -277,6 +277,13 @@
       color: #C0BAB0;
       margin-top: 3px;
     }
+    .branch-nav { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .branch-nav a { display: grid; place-items: center; min-height: 44px; padding: 8px; text-align: center; border: 1px solid var(--border); border-radius: 12px; color: var(--dark); background: white; font-size: 13px; font-weight: 700; text-decoration: none; }
+    .branch-location { padding: 8px 14px; color: var(--mid); font-size: 13px; }
+    .cluster { scroll-margin-top: 12px; }
+    .cluster:target { outline: 2px solid #2B4B8C; outline-offset: 2px; }
+    .ri-call { background: #356348; color: white; font-weight: 700; }
+    .lr:focus-visible, .branch-nav a:focus-visible { outline: 2px solid #2B4B8C; outline-offset: -3px; }
   </style>
 </head>
 <body>
@@ -292,16 +299,45 @@
   </section>
 
   <section class="notice">
-    <div class="notice-title">호텔 간편예약 안내</div>
-    <div class="notice-copy">지점을 선택해 예약 정보를 남겨주시면, 매장에서 확인 후 예약 확정 안내 문자를 보내드립니다.</div>
+    <div class="notice-title">유치원 입학 상담과 호텔 예약</div>
+    <div class="notice-copy">유치원은 지점별 채팅 또는 전화로 문의해 주세요. 호텔은 희망 일정을 남겨주시면 매장 확인 후 예약 확정 문자를 보내드립니다.</div>
   </section>
+  <nav class="branch-nav" aria-label="지점별 상담 바로가기">
+    <a href="#sasang">사상점 바로가기</a>
+    <a href="#eomgung">사하점 바로가기</a>
+  </nav>
 
-  <div class="cluster sasang">
+  <section class="cluster sasang" id="sasang" tabindex="-1" aria-label="사상점">
     <div class="cluster-header">
       <div class="cl-badge">사</div>
       <span class="cl-label">📍 사상점</span>
     </div>
     <div class="cluster-body">
+      <p class="branch-location">부산 사상구 사상로 208-1, 티오피상가 8층 804호</p>
+      <a href="https://pf.kakao.com/_nbxeBX/chat" target="_self" rel="noopener noreferrer" class="lr">
+        <div class="ri ri-kko">
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <ellipse cx="12" cy="11" rx="9.5" ry="8" fill="rgba(40,20,10,.82)"/>
+            <path d="M 9 17 L 7 21 L 12.5 18" fill="rgba(40,20,10,.82)"/>
+            <circle cx="8.2" cy="11" r="1.2" fill="white"/>
+            <circle cx="12" cy="11" r="1.2" fill="white"/>
+            <circle cx="15.8" cy="11" r="1.2" fill="white"/>
+          </svg>
+        </div>
+        <div class="rt">
+          <div class="r-title">유치원 입학 상담</div>
+          <div class="r-sub">사상점 카카오톡 채팅 · 앱 또는 로그인 필요</div>
+        </div>
+        <span class="r-arr">›</span>
+      </a>
+      <a href="tel:01031601721" class="lr">
+        <div class="ri ri-call" aria-hidden="true">☎</div>
+        <div class="rt">
+          <div class="r-title">유치원 전화 상담</div>
+          <div class="r-sub">사상점 010-3160-1721 · 로그인 없이 전화</div>
+        </div>
+        <span class="r-arr" aria-hidden="true">›</span>
+      </a>
       <a href="reservation/?branch=sasang" target="_self" rel="noopener noreferrer" class="lr lr-reserve">
         <div class="ri ri-reserve">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
@@ -343,7 +379,17 @@
         </div>
         <span class="r-arr">›</span>
       </a>
-      <a href="https://pf.kakao.com/_nbxeBX/chat" target="_self" rel="noopener noreferrer" class="lr">
+    </div>
+  </section>
+
+  <section class="cluster eomgung" id="eomgung" tabindex="-1" aria-label="사하점">
+    <div class="cluster-header">
+      <div class="cl-badge">하</div>
+      <span class="cl-label">📍 사하점</span>
+    </div>
+    <div class="cluster-body">
+      <p class="branch-location">부산 사상구 엄궁로 43, 6층 (엄궁동)</p>
+      <a href="https://pf.kakao.com/_DknBX/chat" target="_self" rel="noopener noreferrer" class="lr">
         <div class="ri ri-kko">
           <svg width="20" height="20" viewBox="0 0 24 24">
             <ellipse cx="12" cy="11" rx="9.5" ry="8" fill="rgba(40,20,10,.82)"/>
@@ -354,21 +400,19 @@
           </svg>
         </div>
         <div class="rt">
-          <div class="r-title">카카오톡 채널</div>
-          <div class="r-sub">채팅으로 문의하기</div>
+          <div class="r-title">유치원 입학 상담</div>
+          <div class="r-sub">사하점 카카오톡 채팅 · 앱 또는 로그인 필요</div>
         </div>
         <span class="r-arr">›</span>
       </a>
-    </div>
-  </div>
-
-  <div class="cluster eomgung">
-    <div class="cluster-header">
-      <div class="cl-badge">하</div>
-      <span class="cl-label">📍 사하점</span>
-      <span class="cl-new">2026.03 오픈</span>
-    </div>
-    <div class="cluster-body">
+      <a href="tel:01075342558" class="lr">
+        <div class="ri ri-call" aria-hidden="true">☎</div>
+        <div class="rt">
+          <div class="r-title">유치원 전화 상담</div>
+          <div class="r-sub">사하점 010-7534-2558 · 로그인 없이 전화</div>
+        </div>
+        <span class="r-arr" aria-hidden="true">›</span>
+      </a>
       <a href="reservation/?branch=eomgung" target="_self" rel="noopener noreferrer" class="lr lr-reserve">
         <div class="ri ri-reserve">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
@@ -410,24 +454,8 @@
         </div>
         <span class="r-arr">›</span>
       </a>
-      <a href="https://pf.kakao.com/_DknBX/chat" target="_self" rel="noopener noreferrer" class="lr">
-        <div class="ri ri-kko">
-          <svg width="20" height="20" viewBox="0 0 24 24">
-            <ellipse cx="12" cy="11" rx="9.5" ry="8" fill="rgba(40,20,10,.82)"/>
-            <path d="M 9 17 L 7 21 L 12.5 18" fill="rgba(40,20,10,.82)"/>
-            <circle cx="8.2" cy="11" r="1.2" fill="white"/>
-            <circle cx="12" cy="11" r="1.2" fill="white"/>
-            <circle cx="15.8" cy="11" r="1.2" fill="white"/>
-          </svg>
-        </div>
-        <div class="rt">
-          <div class="r-title">카카오톡 채널</div>
-          <div class="r-sub">채팅으로 문의하기</div>
-        </div>
-        <span class="r-arr">›</span>
-      </a>
     </div>
-  </div>
+  </section>
 
   <div class="divider"></div>
   <div class="footer">
